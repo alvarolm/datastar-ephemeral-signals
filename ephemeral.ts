@@ -2,11 +2,11 @@
  * Ephemeral Signals Plugin for Datastar
  *
  * This plugin provides an `@ephemeral` action to create temporary signals.
- * These are ideal for transient states, like notifications, alerts, or anything 
+ * These are ideal for transient states, like notifications, alerts, or anything
  * that has a short lifespan.
- * 
+ *
  * - generates a unique signal key with a configurable prefix
- * - stores the provided data at the root level
+ * - stores the provided data at the root level (reactive via bracket notation)
  *
  * Setup:
  *   import * as datastar from './datastar.js'
@@ -73,7 +73,7 @@ class EphemeralSignal {
       clearTimeout(this.#timeoutId)
     }
 
-    // Remove the signal
+    // Remove the signal from root
     if (this.#root[this.#key]) {
       delete this.#root[this.#key]
       return true
@@ -109,7 +109,7 @@ export function install(
       const prefix = customPrefix ?? defaultPrefix
 
       // Generate unique key with prefix
-      const key = prefix + self.crypto.randomUUID()
+      const key = prefix + self.crypto.randomUUID().replace(/-/g, '')
 
       // Store the data at root level
       root[key] = data

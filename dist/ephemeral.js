@@ -54,7 +54,7 @@ function install(engine, options = {}) {
     apply: (ctx, data = {}, options2 = {}) => {
       const { duration, prefix: customPrefix } = options2;
       const prefix = customPrefix ?? defaultPrefix;
-      const key = prefix + self.crypto.randomUUID();
+      const key = prefix + self.crypto.randomUUID().replace(/-/g, "");
       root[key] = data;
       let timeoutId;
       const effectiveDuration = duration !== void 0 ? duration : defaultTimeout;

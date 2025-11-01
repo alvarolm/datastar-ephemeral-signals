@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ephemeral Signals Filter Test</title>
+  <script type="module">
+    import * as datastar from './datastar/bundles/datastar.js'
+    import { install } from './dist/ephemeral.js'
+
+    // Install with default prefix 'eph_'
+    install(datastar, { prefix: 'eph_' })
+  </script>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    button {
+      padding: 8px 16px;
+      margin: 4px;
+      cursor: pointer;
+      border: 1px solid #333;
+      background: #fff;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: #f0f0f0;
+    }
+    .section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .signal-card {
+      padding: 10px;
+      margin: 5px 0;
+      background: #f9f9f9;
+      border-left: 3px solid #333;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+    .output {
+      background: #f0f0f0;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ephemeral Signals Filter Test</h1>
+
+  <script>
+    let signal1 = null
+    let signal2 = null
+    let signal3 = null
+  </script>
+
+  <div class="section">
+    <h2>1. Create Signals</h2>
+    <button data-on:click="signal1 = @ephemeral({ name: 'Signal 1', value: 100 })">
+      Create Signal 1
+    </button>
+    <button data-on:click="signal2 = @ephemeral({ name: 'Signal 2', value: 200 })">
+      Create Signal 2
+    </button>
+    <button data-on:click="signal3 = @ephemeral({ name: 'Signal 3', value: 300 }, { prefix: 'temp_' })">
+      Create Signal 3 (prefix: temp_)
+    </button>
+  </div>
+
+  <div class="section">
+    <h2>2. Current Signals (Debug View)</h2>
+    <p>All signals in the store:</p>
+    <pre data-json-signals style="background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 4px; overflow-x: auto;"></pre>
+  </div>
+
+  <div class="section">
+    <h2>3. Signal References</h2>
+    <div data-show="signal1" class="signal-card">
+      <strong>Signal 1:</strong> <code data-text="signal1?.id()"></code><br>
+      Name: <span data-text="$[signal1?.id()].name"></span>,
+      Value: <span data-text="$[signal1?.id()].value"></span>
+    </div>
+    <div data-show="signal2" class="signal-card">
+      <strong>Signal 2:</strong> <code data-text="signal2?.id()"></code><br>
+      Name: <span data-text="$[signal2?.id()].name"></span>,
+      Value: <span data-text="$[signal2?.id()].value"></span>
+    </div>
+    <div data-show="signal3" class="signal-card">
+      <strong>Signal 3:</strong> <code data-text="signal3?.id()"></code><br>
+      Name: <span data-text="$[signal3?.id()].name"></span>,
+      Value: <span data-text="$[signal3?.id()].value"></span>
+    </div>
+    <div data-show="!signal1 && !signal2 && !signal3" style="color: #666;">
+      No signals created yet.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>4. Test Filters</h2>
+    <p>Open DevTools Console to see the filter output.</p>
+
+    <h3>Test filter() - Single Signal</h3>
+    <button data-on:click="console.log('Signal 1 filter:', signal1?.filter())">
+      Log Signal 1 filter()
+    </button>
+    <button data-on:click="console.log('Signal 2 filter:', signal2?.filter())">
+      Log Signal 2 filter()
+    </button>
+    <button data-on:click="console.log('Signal 3 filter:', signal3?.filter())">
+      Log Signal 3 filter()
+    </button>
+
+    <h3>Test filterPrefix() - All Signals with Prefix</h3>
+    <button data-on:click="console.log('Signal 1 filterPrefix:', signal1?.filterPrefix())">
+      Log Signal 1 filterPrefix() (eph_ prefix)
+    </button>
+    <button data-on:click="console.log('Signal 3 filterPrefix:', signal3?.filterPrefix())">
+      Log Signal 3 filterPrefix() (temp_ prefix)
+    </button>
+  </div>
+
+  <div class="section">
+    <h2>5. Test Regex Matching</h2>
+    <button data-on:click="
+      const filter1 = signal1?.filter();
+      if (filter1) {
+        console.log('Testing Signal 1 filter regex:');
+        console.log('  Signal 1 ID:', signal1.id(), '-> Match:', filter1.include.test(signal1.id()));
+        if (signal2) console.log('  Signal 2 ID:', signal2.id(), '-> Match:', filter1.include.test(signal2.id()));
+        if (signal3) console.log('  Signal 3 ID:', signal3.id(), '-> Match:', filter1.include.test(signal3.id()));
+      }
+    ">
+      Test Signal 1 filter() regex
+    </button>
+
+    <button data-on:click="
+      const prefix1 = signal1?.filterPrefix();
+      if (prefix1) {
+        console.log('Testing Signal 1 filterPrefix regex (eph_):');
+        console.log('  Signal 1 ID:', signal1.id(), '-> Match:', prefix1.include.test(signal1.id()));
+        if (signal2) console.log('  Signal 2 ID:', signal2.id(), '-> Match:', prefix1.include.test(signal2.id()));
+        if (signal3) console.log('  Signal 3 ID:', signal3.id(), '-> Match:', prefix1.include.test(signal3.id()));
+      }
+    ">
+      Test Signal 1 filterPrefix() regex
+    </button>
+  </div>
+
+  <div class="section">
+    <h2>6. Remove Signals</h2>
+    <button data-on:click="signal1?.remove(); signal1 = null">
+      Remove Signal 1
+    </button>
+    <button data-on:click="signal2?.remove(); signal2 = null">
+      Remove Signal 2
+    </button>
+    <button data-on:click="signal3?.remove(); signal3 = null">
+      Remove Signal 3
+    </button>
+    <button data-on:click="signal1?.remove(); signal2?.remove(); signal3?.remove(); signal1 = null; signal2 = null; signal3 = null">
+      Remove All
+    </button>
+  </div>
+
+  <div class="section">
+    <h2>7. Instructions</h2>
+    <ol>
+      <li>Click "Create Signal 1" and "Create Signal 2" to create signals with <code>eph_</code> prefix</li>
+      <li>Click "Create Signal 3" to create a signal with <code>temp_</code> prefix</li>
+      <li>Watch the "Current Signals (Debug View)" section update in real-time showing all signals</li>
+      <li>Open DevTools Console (F12) for additional debugging</li>
+      <li>Click the filter test buttons to see the filter objects in console</li>
+      <li>Click the regex matching buttons to verify the filters correctly match/exclude signals</li>
+      <li>Expected behavior:
+        <ul>
+          <li><code>filter()</code> should only match the specific signal</li>
+          <li><code>filterPrefix()</code> should match all signals with the same prefix</li>
+          <li>Signal 3 with <code>temp_</code> prefix should not match <code>eph_</code> filters</li>
+          <li>UUIDs should not contain hyphens</li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+
+</body>
+</html>
