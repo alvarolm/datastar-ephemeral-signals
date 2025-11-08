@@ -40,25 +40,18 @@ type DatastarEngine = {
   root: typeof root
 }
 
-// Helper to escape special regex characters
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
 
 class EphemeralSignal {
   #key: string
-  #prefix: string
   #root: Record<string, any>
   #timeoutId?: number
 
   constructor(
     key: string,
-    prefix: string,
     rootRef: Record<string, any>,
     timeoutId: number | undefined
   ) {
     this.#key = key
-    this.#prefix = prefix
     this.#root = rootRef
     this.#timeoutId = timeoutId
   }
@@ -68,6 +61,8 @@ class EphemeralSignal {
   }
 
   remove(): boolean {
+    console.log('root:', this.#root)
+
     // Clear timeout if it exists
     if (this.#timeoutId !== undefined) {
       clearTimeout(this.#timeoutId)
@@ -79,16 +74,6 @@ class EphemeralSignal {
       return true
     }
     return false
-  }
-
-  filter(): { include: RegExp } {
-    // Return filter to include only this specific signal
-    return { include: new RegExp(`^${escapeRegex(this.#key)}$`) }
-  }
-
-  filterPrefix(): { include: RegExp } {
-    // Return filter to include all signals with same prefix
-    return { include: new RegExp(`^${escapeRegex(this.#prefix)}`) }
   }
 }
 
@@ -129,9 +114,7 @@ export function install(
       }
 
       // Return an EphemeralSignal instance
-      return new EphemeralSignal(key, prefix, root, timeoutId)
+      return new EphemeralSignal(key, root, timeoutId)
     },
   })
-
-  console.log(`Ephemeral signals plugin loaded with default prefix '${defaultPrefix}' and default timeout ${defaultTimeout}ms, @ephemeral() is now available`)
 }
